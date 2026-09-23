@@ -3,9 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import EventCard from '../../components/EventCard'
 import { api } from '../../lib/api'
 
-const CATEGORIES = ['All Events', 'Life Skills', 'Wellness', 'Career Growth', 'Icebreakers', 'Social']
+function slotsLabel(event) {
+  if (!event.capacity) return undefined
+  const left = Math.max(0, event.capacity - (event.taken ?? 0))
+  return left === 0 ? 'Full' : `${left} of ${event.capacity} slots left`
+}
 
-function toCard(event) {
+function toCard(event, registeredIds) {
   const start = event.start_time ? new Date(`${event.start_date}T${event.start_time}`) : new Date(event.start_date)
   return {
     ...event,
@@ -17,7 +21,8 @@ function toCard(event) {
     locationText: event.locationText ?? event.address,
     title: event.title,
     description: event.description,
-    badgeText: event.badgeText ?? (event.capacity ? `${event.capacity} slots` : undefined),
+    registered: registeredIds.has(event.id),
+    badgeText: event.badgeText ?? slotsLabel(event),
   }
 }
 
@@ -25,7 +30,23 @@ export default function EventsList() {
   const [category, setCategory] = useState('All Events')
   const [search, setSearch] = useState('')
   const [events, setEvents] = useState(null)
+  const [categories, setCategories] = useState(['All Events'])
+  const [registeredIds, setRegisteredIds] = useState(() => new Set())
   const navigate = useNavigate()
+
+  useEffect(() => {
+    api.get('/events').then((res) => {
+      const unique = [...new Set((res.data.data ?? []).map((e) => e.event_category).filter(Boolean))]
+      setCategories(['All Events', ...unique])
+    })
+
+    api
+      .get('/me/registrations')
+      .then((res) =>
+        setRegisteredIds(new Set((res.data.data ?? []).filter((r) => r.status !== 'cancelled').map((r) => r.event_id))),
+      )
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -34,7 +55,7 @@ export default function EventsList() {
       .get('/events', { params: { category: category === 'All Events' ? undefined : category, search: search || undefined } })
       .then((res) => {
         if (cancelled) return
-        setEvents((res.data.data ?? []).map(toCard))
+        setEvents((res.data.data ?? []).map((e) => toCard(e, registeredIds)))
       })
       .catch(() => {
         if (cancelled) return
@@ -44,7 +65,7 @@ export default function EventsList() {
     return () => {
       cancelled = true
     }
-  }, [category, search])
+  }, [category, search, registeredIds])
 
   return (
     <div className="w-full bg-background pb-8">
@@ -54,12 +75,6 @@ export default function EventsList() {
 
         <header className="relative flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6">
           <div className="flex flex-col max-w-3xl">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
-                <span className="material-symbols-outlined text-[15px]">groups</span>
-                Bayanihan Culture & Learning
-              </span>
-            </div>
             <h1 className="font-display-hero text-display-hero-mobile lg:text-display-hero text-on-surface tracking-tight leading-tight">
               Discover Workshops & Social Meetups
             </h1>
@@ -84,14 +99,13 @@ export default function EventsList() {
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5">
-            {CATEGORIES.map((c) => (
+            {categories.map((c) => (
               <button
                 key={c}
-                className={`px-3.5 py-1.5 rounded-full font-label-md text-label-md shrink-0 whitespace-nowrap transition-colors ${
-                  category === c
+                className={`px-3.5 py-1.5 rounded-full font-label-md text-label-md shrink-0 whitespace-nowrap transition-colors ${category === c
                     ? 'bg-primary text-on-primary shadow-sm'
                     : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-                }`}
+                  }`}
                 type="button"
                 onClick={() => setCategory(c)}
               >
@@ -103,7 +117,7 @@ export default function EventsList() {
 
         <section className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events?.map((event) => (
-            <EventCard key={event.id} {...event} onCtaClick={() => navigate(`/events/${event.id}`)} />
+            <EventCard key={event.id} {...event} onClick={() => navigate(`/events/${event.id}`)} />
           ))}
         </section>
 

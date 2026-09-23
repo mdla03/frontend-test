@@ -9,11 +9,12 @@ export async function authMiddleware(req, res, next) {
     const decoded = verifyToken(header.slice(7))
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, auth_user_id, name, email, role, img_url, created_at')
+      .select('id, auth_user_id, name, email, role, organizer_status, img_url, created_at')
       .eq('id', decoded.sub)
       .single()
 
-    if (error || !user) return res.status(401).json({ error: 'Invalid token' })
+    if (error) return res.status(500).json({ error: error.message })
+    if (!user) return res.status(401).json({ error: 'Invalid token' })
 
     req.user = user
     next()

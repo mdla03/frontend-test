@@ -74,11 +74,19 @@ export default function Header() {
             </div>
             <ul tabIndex={0} className="dropdown-content menu z-50 mt-2 w-48 rounded-xl bg-surface-container-lowest shadow-lg p-2 gap-1">
               <li>
-                <NavLink to="/rewards" className="font-label-md text-label-md text-on-surface rounded-lg">
+                <NavLink to="/profile" className="font-label-md text-label-md text-on-surface rounded-lg">
                   <span className="material-symbols-outlined text-[18px]">person</span>
                   Profile
                 </NavLink>
               </li>
+              {user?.role === 'organizer' && (
+                <li>
+                  <NavLink to="/organizer" className="font-label-md text-label-md text-on-surface rounded-lg">
+                    <span className="material-symbols-outlined text-[18px]">dashboard</span>
+                    Organizer Portal
+                  </NavLink>
+                </li>
+              )}
               <li>
                 <button type="button" onClick={handleLogout} className="font-label-md text-label-md text-error rounded-lg">
                   <span className="material-symbols-outlined text-[18px]">logout</span>

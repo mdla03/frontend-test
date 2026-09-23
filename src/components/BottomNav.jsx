@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom'
 const links = [
   { to: '/events', label: 'Events', icon: 'event' },
   { to: '/map', label: 'Map', icon: 'map' },
-  { to: '/rewards', label: 'Profile', icon: 'person' },
+  { to: '/profile', label: 'Profile', icon: 'person' },
 ]
 
 export default function BottomNav() {

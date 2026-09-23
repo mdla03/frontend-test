@@ -9,10 +9,11 @@ const BGC_CENTER = [14.5514, 121.0509]
 
 const CATEGORIES = [
   { key: 'all', label: 'All', icon: 'apps' },
-  { key: 'Icebreakers', label: 'Icebreakers & Social', icon: 'diversity_3' },
-  { key: 'Life Skills', label: 'Life Skills', icon: 'lightbulb' },
-  { key: 'Wellness', label: 'Wellness', icon: 'self_improvement' },
-  { key: 'Career Growth', label: 'Career Growth', icon: 'trending_up' },
+  { key: 'Sports', label: 'Sports', icon: 'sports_soccer' },
+  { key: 'Lifestyle', label: 'Lifestyle', icon: 'self_improvement' },
+  { key: 'Community', label: 'Community', icon: 'diversity_3' },
+  { key: 'Networking', label: 'Networking', icon: 'groups' },
+  { key: 'Others', label: 'Others', icon: 'apps' },
 ]
 
 function pinIcon(icon, active) {
@@ -146,7 +147,7 @@ export default function MapDiscovery() {
       </div>
 
       {/* Floating zoom/locate controls */}
-      <div className="absolute right-4 bottom-72 md:bottom-28 z-[1000] flex flex-col items-center gap-2">
+      <div className="absolute right-4 bottom-24 lg:bottom-8 z-[1000] flex flex-col items-center gap-2">
         <button
           className="w-12 h-12 rounded-full bg-surface-container-lowest text-primary shadow-xl flex items-center justify-center hover:bg-surface-container-high"
           onClick={handleNearMe}
@@ -162,9 +163,9 @@ export default function MapDiscovery() {
         </div>
       )}
 
-      {/* Bottom sheet */}
+      {/* Bottom sheet — bottom-24 clears the mobile BottomNav overlaying the map. */}
       {selected && (
-        <div className="absolute bottom-4 left-4 right-4 md:left-8 md:max-w-2xl z-[1000]">
+        <div className="absolute bottom-24 lg:bottom-4 left-4 right-4 md:left-8 md:max-w-2xl z-[1000] max-h-[60vh] overflow-y-auto">
           <div className="bg-surface-container-lowest/95 backdrop-blur-xl rounded-2xl p-5 md:p-6 shadow-2xl overflow-hidden relative">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-primary-container to-secondary-container" />
 
@@ -205,9 +206,11 @@ export default function MapDiscovery() {
             )}
 
             {selected.venue && (
-              <div className="flex items-center gap-2 mt-3 text-on-surface font-body-sm text-body-sm bg-surface-container-low/70 px-3 py-2 rounded-xl">
+              <div className="flex items-center gap-2 mt-3 min-w-0 text-on-surface font-body-sm text-body-sm bg-surface-container-low/70 px-3 py-2 rounded-xl">
                 <span className="material-symbols-outlined text-[20px] text-primary shrink-0">location_on</span>
-                <span className="font-label-md text-label-md font-semibold">{selected.venue}</span>
+                <span className="font-label-md text-label-md font-semibold truncate" title={selected.venue}>
+                  {selected.venue}
+                </span>
               </div>
             )}
 

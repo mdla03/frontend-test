@@ -17,17 +17,22 @@ export default function Attendees() {
   const [myEvents, setMyEvents] = useState([])
   const [event, setEvent] = useState(null)
   const [registrations, setRegistrations] = useState([])
-  const [tab, setTab] = useState('confirmed')
   const [search, setSearch] = useState('')
 
   useEffect(() => {
     api
       .get('/events', { params: { organizer: 'me' } })
-      .then((res) => setMyEvents(res.data.data ?? []))
+      .then((res) => {
+        const events = res.data.data ?? []
+        setMyEvents(events)
+        // Reached from the sidebar tab, which has no event in the URL yet.
+        if (!id && events[0]) navigate(`/organizer/events/${events[0].id}/attendees`, { replace: true })
+      })
       .catch(() => {})
-  }, [])
+  }, [id, navigate])
 
   useEffect(() => {
+    if (!id) return
     api
       .get(`/events/${id}`)
       .then((res) => setEvent(res.data.data))
@@ -39,96 +44,99 @@ export default function Attendees() {
   }, [id])
 
   const confirmed = registrations.filter((r) => r.status === 'registered')
-  const waitlisted = registrations.filter((r) => r.status === 'waitlisted')
-  const rows = (tab === 'confirmed' ? confirmed : waitlisted).filter(
-    (r) => !search || r.users?.name?.toLowerCase().includes(search.toLowerCase()),
-  )
+  const rows = confirmed.filter((r) => !search || r.users?.name?.toLowerCase().includes(search.toLowerCase()))
   const fillPct = event?.capacity ? Math.min(100, Math.round((confirmed.length / event.capacity) * 100)) : null
+
+  if (!id) {
+    return (
+      <div className="font-body-md text-body-md text-on-surface-variant">
+        {myEvents.length === 0 ? 'Create an event first to manage attendees.' : 'Loading…'}
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col w-full gap-8">
       <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-baseline gap-4">
-          <h1 className="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-on-surface tracking-tight">
-            Attendees
-          </h1>
-          <select
-            className="appearance-none bg-surface-container-low pl-3 pr-8 py-1.5 rounded-lg font-headline-sm text-headline-sm text-primary font-semibold cursor-pointer focus:outline-none shadow-sm"
-            value={id}
-            onChange={(e) => navigate(`/organizer/events/${e.target.value}/attendees`)}
-          >
-            {myEvents.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.title}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-wrap items-center gap-4">
+          <h1 className="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-on-surface tracking-tight">Attendees</h1>
+          <div className="dropdown">
+            <div
+              tabIndex={0}
+              role="button"
+              className="flex items-center gap-2 max-w-xs bg-surface-container-low hover:bg-surface-container pl-4 pr-3 py-2 rounded-xl shadow-sm cursor-pointer transition-colors"
+            >
+              <span className="font-label-lg text-label-lg text-primary font-semibold truncate">{event?.title ?? 'Select an event'}</span>
+              <span className="material-symbols-outlined text-[18px] text-on-surface-variant shrink-0">expand_more</span>
+            </div>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu z-50 mt-2 w-[min(20rem,calc(100vw-3rem))] max-h-96 overflow-y-auto flex-nowrap rounded-xl bg-surface-container-lowest shadow-lg p-2 gap-1"
+            >
+              {myEvents.map((e) => (
+                <li key={e.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      document.activeElement?.blur()
+                      navigate(`/organizer/events/${e.id}/attendees`)
+                    }}
+                    className={`flex items-start gap-2 rounded-lg ${e.id === id ? 'bg-secondary-container text-on-secondary-container' : ''}`}
+                  >
+                    <span className={`material-symbols-outlined text-[18px] shrink-0 ${e.id === id ? 'text-primary' : 'text-transparent'}`}>
+                      check
+                    </span>
+                    <span className="flex flex-col min-w-0 text-left">
+                      <span className="font-label-md text-label-md text-on-surface font-semibold truncate">{e.title}</span>
+                      <span className="font-label-sm text-label-sm text-on-surface-variant">
+                        {e.start_date
+                          ? new Date(e.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : 'Date TBA'}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+              {myEvents.length === 0 && (
+                <li className="px-3 py-2 font-label-sm text-label-sm text-on-surface-variant">No events yet.</li>
+              )}
+            </ul>
+          </div>
         </div>
         {event?.address && (
-          <span className="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
-            <span className="material-symbols-outlined text-[15px] text-primary">location_on</span>
-            {event.address}
+          <span className="font-label-sm text-label-sm text-on-surface-variant flex items-start gap-1 min-w-0">
+            <span className="material-symbols-outlined text-[15px] text-primary shrink-0">
+              {event.modality === 'virtual' ? 'videocam' : 'location_on'}
+            </span>
+            {/* A meeting URL is one unbreakable token — break-all keeps it inside the page. */}
+            <span className="break-all">{event.address}</span>
           </span>
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm">
-          <div className="flex items-center justify-between text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold">Confirmed Slots</span>
-            <span className="material-symbols-outlined text-[18px] text-primary">how_to_reg</span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-headline-lg text-headline-lg text-on-surface">{confirmed.length}</span>
-            {event?.capacity && <span className="font-label-md text-label-md text-outline">/ {event.capacity} target</span>}
-          </div>
-          {fillPct !== null && (
-            <div className="mt-2 w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
-              <div className="bg-primary h-full rounded-full" style={{ width: `${fillPct}%` }} />
-            </div>
-          )}
+      <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm max-w-sm">
+        <div className="flex items-center justify-between text-on-surface-variant">
+          <span className="font-label-md text-label-md font-semibold">Confirmed Slots</span>
+          <span className="material-symbols-outlined text-[18px] text-primary">how_to_reg</span>
         </div>
-        <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm">
-          <div className="flex items-center justify-between text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold">Waitlist Queue</span>
-            <span className="material-symbols-outlined text-[18px] text-on-surface-variant">schedule</span>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-headline-lg text-headline-lg text-on-surface">{waitlisted.length}</span>
-          </div>
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="font-headline-lg text-headline-lg text-on-surface">{confirmed.length}</span>
+          {event?.capacity && <span className="font-label-md text-label-md text-outline">/ {event.capacity} target</span>}
         </div>
-        <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm">
-          <div className="flex items-center justify-between text-on-surface-variant">
-            <span className="font-label-md text-label-md font-semibold">Capacity</span>
-            <span className="material-symbols-outlined text-[18px] text-on-surface-variant">groups</span>
+        {fillPct !== null && (
+          <div className="mt-2 w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+            <div className="bg-primary h-full rounded-full" style={{ width: `${fillPct}%` }} />
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-headline-lg text-headline-lg text-on-surface">{event?.capacity ?? '—'}</span>
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="flex flex-col bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
         <div className="p-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <button
-              className={`px-4 py-2 rounded-lg font-label-lg text-label-lg transition-all flex items-center gap-2 ${
-                tab === 'confirmed' ? 'bg-primary-container text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low'
-              }`}
-              onClick={() => setTab('confirmed')}
-            >
-              <span>Confirmed</span>
-              <span className="bg-surface-container-lowest/30 px-2 py-0.5 rounded-full font-label-sm text-label-sm">{confirmed.length}</span>
-            </button>
-            <button
-              className={`px-4 py-2 rounded-lg font-label-lg text-label-lg transition-all flex items-center gap-2 ${
-                tab === 'waitlist' ? 'bg-primary-container text-on-primary shadow-sm' : 'text-on-surface-variant hover:bg-surface-container-low'
-              }`}
-              onClick={() => setTab('waitlist')}
-            >
-              <span>Waitlist</span>
-              <span className="bg-surface-container-low px-2 py-0.5 rounded-full font-label-sm text-label-sm">{waitlisted.length}</span>
-            </button>
+            <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">Confirmed Attendees</h2>
+            <span className="px-2 py-0.5 rounded-full bg-surface-container-low font-label-sm text-label-sm text-on-surface-variant">
+              {confirmed.length}
+            </span>
           </div>
           <div className="relative w-full sm:w-72">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
@@ -146,16 +154,15 @@ export default function Attendees() {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-surface-container-low text-on-surface-variant font-label-md text-label-md">
-                <th className="py-3 px-4 font-semibold">Employee</th>
+                <th className="py-3 px-4 font-semibold">Employee Details</th>
                 <th className="py-3 px-4 font-semibold">Registered On</th>
-                <th className="py-3 px-4 font-semibold">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-container-low font-body-sm text-body-sm text-on-surface">
               {rows.length === 0 && (
                 <tr>
-                  <td className="py-6 px-4 text-on-surface-variant" colSpan={3}>
-                    No {tab === 'confirmed' ? 'confirmed attendees' : 'waitlisted registrants'} yet.
+                  <td className="py-6 px-4 text-on-surface-variant" colSpan={2}>
+                    No attendees registered yet.
                   </td>
                 </tr>
               )}
@@ -174,15 +181,6 @@ export default function Attendees() {
                   </td>
                   <td className="py-3.5 px-4 text-on-surface-variant">
                     {new Date(r.registration_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-label-sm text-label-sm font-semibold ${
-                        r.status === 'registered' ? 'bg-secondary-container text-on-secondary-fixed' : 'bg-surface-container text-on-surface-variant'
-                      }`}
-                    >
-                      {r.status === 'registered' ? 'Confirmed' : 'Waitlisted'}
-                    </span>
                   </td>
                 </tr>
               ))}

@@ -10,12 +10,12 @@ const EDITABLE_FIELDS = [
   'start_date',
   'end_date',
   'start_time',
+  'end_time',
   'capacity',
   'fee_type',
   'reward_type',
   'modality',
   'img_url',
-  'status',
 ]
 
 export async function updateEvent(req, res) {
@@ -44,7 +44,7 @@ export async function updateEvent(req, res) {
 
 export async function updateEventStatus(req, res) {
   const { approval_status } = req.body
-  const allowed = ['approved', 'rejected', 'changes_requested']
+  const allowed = ['approved', 'rejected']
   if (!allowed.includes(approval_status)) {
     return res.status(400).json({ error: `approval_status must be one of ${allowed.join(', ')}` })
   }

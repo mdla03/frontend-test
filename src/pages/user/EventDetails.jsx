@@ -8,12 +8,20 @@ export default function EventDetails() {
   const [event, setEvent] = useState(null)
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [registered, setRegistered] = useState(false)
+  const [hoveringLeave, setHoveringLeave] = useState(false)
+  const [confirmingLeave, setConfirmingLeave] = useState(false)
 
   useEffect(() => {
     api
       .get(`/events/${id}`)
       .then((res) => setEvent(res.data.data))
       .catch(() => setError('Could not load this event — the backend may not be seeded yet.'))
+
+    api
+      .get('/me/registrations')
+      .then((res) => setRegistered((res.data.data ?? []).some((r) => r.event_id === id && r.status !== 'cancelled')))
+      .catch(() => {})
   }, [id])
 
   async function handleRegister() {
@@ -23,6 +31,21 @@ export default function EventDetails() {
       navigate(`/events/${id}/joined`)
     } catch (err) {
       setError(err.response?.data?.error ?? 'Registration failed')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleUnregister() {
+    setSubmitting(true)
+    setError(null)
+    try {
+      await api.delete(`/events/${id}/register`)
+      setRegistered(false)
+      setConfirmingLeave(false)
+      setHoveringLeave(false)
+    } catch (err) {
+      setError(err.response?.data?.error ?? 'Could not cancel your registration')
     } finally {
       setSubmitting(false)
     }
@@ -39,7 +62,18 @@ export default function EventDetails() {
       </button>
 
       <div className="relative w-full h-56 rounded-xl overflow-hidden bg-gradient-to-br from-primary/15 to-primary-container/10 flex items-center justify-center">
-        <span className="material-symbols-outlined text-[80px] text-primary/25">event</span>
+        {event?.img_url ? (
+          <img
+            src={event.img_url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none'
+            }}
+          />
+        ) : (
+          <span className="material-symbols-outlined text-[80px] text-primary/25">event</span>
+        )}
         {event?.event_category && (
           <span className="absolute top-4 left-4 px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold shadow">
             {event.event_category}
@@ -81,8 +115,10 @@ export default function EventDetails() {
             <div className="flex items-center gap-3 bg-surface-container-lowest rounded-xl p-4 shadow-sm">
               <span className="material-symbols-outlined text-primary">groups</span>
               <div>
-                <p className="font-label-sm text-label-sm text-on-surface-variant">Capacity</p>
-                <p className="font-label-lg text-label-lg text-on-surface">{event.capacity ?? 'Open'}</p>
+                <p className="font-label-sm text-label-sm text-on-surface-variant">Slots</p>
+                <p className="font-label-lg text-label-lg text-on-surface">
+                  {event.capacity ? `${Math.max(0, event.capacity - (event.taken ?? 0))} of ${event.capacity} left` : 'Open'}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3 bg-surface-container-lowest rounded-xl p-4 shadow-sm">
@@ -94,14 +130,57 @@ export default function EventDetails() {
             </div>
           </div>
 
-          <button
-            className="w-full py-3.5 bg-primary hover:bg-secondary text-on-primary rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-            onClick={handleRegister}
-            disabled={submitting}
-          >
-            <span>{submitting ? 'Registering…' : 'Register Attendance'}</span>
-            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-          </button>
+          {!registered && (
+            <button
+              className="w-full py-3.5 bg-primary hover:bg-secondary text-on-primary rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              onClick={handleRegister}
+              disabled={submitting}
+            >
+              <span>{submitting ? 'Registering…' : 'Register Attendance'}</span>
+              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
+          )}
+
+          {registered && !confirmingLeave && (
+            // Hovering turns the status pill into the exit affordance.
+            <button
+              className={`w-full py-3.5 rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-2 transition-colors ${
+                hoveringLeave ? 'bg-error-container text-on-error-container' : 'bg-secondary-container text-on-secondary-container'
+              }`}
+              onMouseEnter={() => setHoveringLeave(true)}
+              onMouseLeave={() => setHoveringLeave(false)}
+              onFocus={() => setHoveringLeave(true)}
+              onBlur={() => setHoveringLeave(false)}
+              onClick={() => setConfirmingLeave(true)}
+            >
+              <span className="material-symbols-outlined text-[18px]">{hoveringLeave ? 'logout' : 'check_circle'}</span>
+              <span>{hoveringLeave ? 'Unregister from this event?' : 'Registered'}</span>
+            </button>
+          )}
+
+          {registered && confirmingLeave && (
+            <div className="bg-surface-container-lowest rounded-xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <p className="font-body-md text-body-md text-on-surface flex-1">
+                Give up your slot for <span className="font-semibold">{event.title}</span>?
+              </p>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  className="px-4 py-2.5 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors disabled:opacity-50"
+                  onClick={() => setConfirmingLeave(false)}
+                  disabled={submitting}
+                >
+                  Keep my slot
+                </button>
+                <button
+                  className="px-4 py-2.5 rounded-lg bg-error text-on-error font-label-md text-label-md hover:opacity-90 transition-opacity disabled:opacity-50"
+                  onClick={handleUnregister}
+                  disabled={submitting}
+                >
+                  {submitting ? 'Cancelling…' : 'Yes, unregister'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

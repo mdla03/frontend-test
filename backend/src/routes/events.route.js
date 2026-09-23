@@ -22,5 +22,4 @@ router.patch('/:id/status', requireRole('admin'), updateEventStatus)
 router.post('/:id/register', requireRole('user'), registerForEvent)
 router.delete('/:id/register', requireRole('user'), cancelRegistration)
 router.get('/:id/registrations', requireRole('organizer', 'admin'), eventRegistrations)
-
 export default router

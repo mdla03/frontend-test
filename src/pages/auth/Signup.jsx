@@ -28,7 +28,7 @@ export default function Signup() {
   }
 
   return (
-    <main className="w-full min-h-screen bg-surface flex flex-col items-center p-gutter-lg">
+    <main className="w-full min-h-screen overflow-x-hidden bg-surface flex flex-col items-center p-gutter-lg">
       <div className="relative w-full max-w-5xl flex flex-col items-center py-10">
         <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[720px] h-[360px] bg-gradient-to-b from-secondary-container/30 via-primary/5 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
 

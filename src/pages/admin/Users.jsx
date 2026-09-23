@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react'
+import Dropdown from '../../components/Dropdown'
 import { api } from '../../lib/api'
+
+const ROLE_OPTIONS = [
+  { value: 'user', label: 'Employee' },
+  { value: 'organizer', label: 'Organizer' },
+  { value: 'admin', label: 'Admin' },
+]
 
 const ROLE_BADGE = {
   admin: 'bg-surface-container-highest text-on-surface',
@@ -19,6 +26,7 @@ function initials(name) {
 export default function Users() {
   const [users, setUsers] = useState([])
   const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState('all')
   const [savingId, setSavingId] = useState(null)
 
   function loadUsers() {
@@ -44,9 +52,34 @@ export default function Users() {
     }
   }
 
-  const filtered = users.filter(
-    (u) => !search || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()),
-  )
+  async function handleOrganizerDecision(id, approve) {
+    setSavingId(id)
+    try {
+      await api.patch(`/admin/users/${id}`, {
+        organizer_status: approve ? 'approved' : 'rejected',
+        ...(approve ? { role: 'organizer' } : {}),
+      })
+      loadUsers()
+    } catch {
+      // no-op
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  // Derived from `users`, so a role change lands here as soon as loadUsers()
+  // resolves — the row leaves or joins the active filter on its own.
+  const filtered = users.filter((u) => {
+    const matchesRole = roleFilter === 'all' || u.role === roleFilter
+    const term = search.toLowerCase()
+    const matchesSearch = !search || u.name?.toLowerCase().includes(term) || u.email?.toLowerCase().includes(term)
+    return matchesRole && matchesSearch
+  })
+
+  const roleOptions = [
+    { value: 'all', label: `All Roles (${users.length})` },
+    ...ROLE_OPTIONS.map((o) => ({ ...o, label: `${o.label} (${users.filter((u) => u.role === o.value).length})` })),
+  ]
 
   return (
     <div className="flex flex-col gap-6 max-w-[1200px] mx-auto w-full">
@@ -81,8 +114,8 @@ export default function Users() {
         </div>
       </div>
 
-      <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm">
-        <div className="relative max-w-xl">
+      <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="relative flex-1 max-w-xl">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
           <input
             className="w-full h-11 pl-11 pr-4 rounded-xl bg-surface-container-low text-on-surface font-body-sm text-body-sm placeholder:text-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary"
@@ -92,6 +125,14 @@ export default function Users() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <Dropdown
+          label="Filter by role"
+          options={roleOptions}
+          value={roleFilter}
+          onChange={setRoleFilter}
+          align="end"
+          triggerClassName="h-11 px-4 rounded-xl bg-surface-container-low text-on-surface font-label-md text-label-md shrink-0"
+        />
       </div>
 
       <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
@@ -101,6 +142,7 @@ export default function Users() {
               <tr className="bg-surface-container-low text-on-surface-variant font-label-md text-label-md">
                 <th className="py-3 px-5">Employee</th>
                 <th className="py-3 px-4">Role</th>
+                <th className="py-3 px-4">Organizer Application</th>
                 <th className="py-3 px-4">Joined</th>
               </tr>
             </thead>
@@ -119,16 +161,40 @@ export default function Users() {
                     </div>
                   </td>
                   <td className="py-3.5 px-4">
-                    <select
-                      className={`appearance-none font-label-md text-label-md pl-3 pr-7 py-1 rounded-full font-semibold cursor-pointer shadow-sm disabled:opacity-50 ${ROLE_BADGE[u.role] ?? ROLE_BADGE.user}`}
+                    <Dropdown
+                      label={`Role for ${u.name}`}
+                      options={ROLE_OPTIONS}
                       value={u.role}
                       disabled={savingId === u.id}
-                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                    >
-                      <option value="user">Employee</option>
-                      <option value="organizer">Organizer</option>
-                      <option value="admin">Admin</option>
-                    </select>
+                      onChange={(role) => handleRoleChange(u.id, role)}
+                      triggerClassName={`font-label-md text-label-md pl-3 pr-2 py-1 rounded-full font-semibold shadow-sm w-fit ${
+                        ROLE_BADGE[u.role] ?? ROLE_BADGE.user
+                      }`}
+                    />
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {u.organizer_status === 'pending' ? (
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={savingId === u.id}
+                          onClick={() => handleOrganizerDecision(u.id, true)}
+                          className="px-3 py-1 rounded-full bg-primary text-on-primary font-label-sm text-label-sm shadow-sm disabled:opacity-50"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          disabled={savingId === u.id}
+                          onClick={() => handleOrganizerDecision(u.id, false)}
+                          className="px-3 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm shadow-sm disabled:opacity-50"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="font-label-sm text-label-sm text-on-surface-variant capitalize">{u.organizer_status ?? 'none'}</span>
+                    )}
                   </td>
                   <td className="py-3.5 px-4 text-on-surface-variant">
                     {u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
@@ -137,8 +203,8 @@ export default function Users() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td className="py-6 px-5 text-on-surface-variant" colSpan={3}>
-                    No users match this search.
+                  <td className="py-6 px-5 text-on-surface-variant" colSpan={4}>
+                    No users match this filter.
                   </td>
                 </tr>
               )}

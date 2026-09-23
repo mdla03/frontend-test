@@ -1,11 +1,21 @@
+import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
 
-export default function DashboardLayout({ subtitle, badgeLabel, badgeIcon, links, primaryAction }) {
+export default function DashboardLayout({ subtitle, links }) {
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebar-collapsed') === '1')
+
+  function toggleSidebar() {
+    setCollapsed((c) => {
+      localStorage.setItem('sidebar-collapsed', c ? '0' : '1')
+      return !c
+    })
+  }
+
   return (
     <div className="min-h-screen bg-surface">
-      <Sidebar title="Bayanihan" subtitle={subtitle} badgeLabel={badgeLabel} badgeIcon={badgeIcon} links={links} />
+      <Sidebar subtitle={subtitle} links={links} collapsed={collapsed} onToggle={toggleSidebar} />
 
       <nav className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-surface-container-lowest shadow-sm flex items-center gap-1 overflow-x-auto px-2 py-2">
         {links.map((link) => (
@@ -25,8 +35,8 @@ export default function DashboardLayout({ subtitle, badgeLabel, badgeIcon, links
         ))}
       </nav>
 
-      <div className="lg:pl-72 flex flex-col min-h-screen">
-        <Navbar primaryAction={primaryAction} />
+      <div className={`flex flex-col min-h-screen transition-[padding] duration-200 ${collapsed ? 'lg:pl-20' : 'lg:pl-72'}`}>
+        <Navbar collapsed={collapsed} />
         <main className="w-full pt-28 lg:pt-24 flex-1 bg-surface px-4 lg:px-10 py-8">
           <Outlet />
         </main>

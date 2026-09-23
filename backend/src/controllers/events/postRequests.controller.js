@@ -1,5 +1,7 @@
 import { supabase } from '../../config/supabase.js'
 
+const MAX_IMG_URL_LENGTH = 2 * 1024 * 1024
+
 export async function createEvent(req, res) {
   const {
     title,
@@ -11,17 +13,19 @@ export async function createEvent(req, res) {
     start_date,
     end_date,
     start_time,
+    end_time,
     capacity,
     fee_type,
     reward_type,
     modality,
     img_url,
-    status,
   } = req.body
 
   if (!title || !start_date) return res.status(400).json({ error: 'title and start_date are required' })
-
-  const initialStatus = status === 'submitted' ? 'submitted' : 'draft'
+  // Covers arrive as base64 data URLs, so cap what a client can push into the column.
+  if (img_url && img_url.length > MAX_IMG_URL_LENGTH) {
+    return res.status(413).json({ error: 'Cover image is too large' })
+  }
 
   const { data, error } = await supabase
     .from('events')
@@ -36,13 +40,14 @@ export async function createEvent(req, res) {
       start_date,
       end_date,
       start_time,
+      end_time,
       capacity,
       fee_type,
       reward_type,
       modality,
       img_url,
       organizer_id: req.user.id,
-      status: initialStatus,
+      status: 'submitted',
       approval_status: 'pending',
     })
     .select()

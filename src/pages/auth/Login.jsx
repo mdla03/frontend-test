@@ -5,7 +5,7 @@ import { api } from '../../lib/api'
 
 const demoAccounts = {
   user: { email: 'mark.aquino@manulife.com', landing: '/events' },
-  organizer: { email: 'liza.reyes@manulife.com', landing: '/organizer' },
+  organizer: { email: 'liza.reyes@manulife.com', landing: '/events' },
   admin: { email: 'carlo.santos@manulife.com', landing: '/admin' },
 }
 const DEMO_PASSWORD = 'demo1234'
@@ -52,7 +52,7 @@ export default function Login() {
     try {
       const { data } = await api.post('/auth/login', { email, password })
       login(data.data.token, data.data.user)
-      navigate(data.data.user.role === 'organizer' ? '/organizer' : data.data.user.role === 'admin' ? '/admin' : '/events')
+      navigate(data.data.user.role === 'admin' ? '/admin' : '/events')
     } catch (err) {
       setStatus(err.response?.data?.error ?? 'Login failed. Check your email and password.')
     } finally {
@@ -73,7 +73,7 @@ export default function Login() {
   }
 
   return (
-    <main className="w-full min-h-screen bg-surface flex flex-col items-center p-gutter-lg">
+    <main className="w-full min-h-screen overflow-x-hidden bg-surface flex flex-col items-center p-gutter-lg">
       <div className="relative w-full max-w-5xl flex flex-col items-center py-10">
         <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[720px] h-[360px] bg-gradient-to-b from-secondary-container/30 via-primary/5 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
 

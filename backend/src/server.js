@@ -10,7 +10,8 @@ import adminRoute from './routes/admin.route.js'
 const app = express()
 
 app.use(cors({ origin: ENV.CORS_ORIGIN }))
-app.use(express.json())
+// Cover images ride along as base64 data URLs; the 100kb default is too small.
+app.use(express.json({ limit: '4mb' }))
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }))
 
