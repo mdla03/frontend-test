@@ -2,6 +2,37 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../lib/api'
 
+// Dates arrive as plain `date` / `time` strings — parse them as local, never
+// through `new Date('YYYY-MM-DD')`, which is UTC and shifts the day.
+function fmtDate(value) {
+  if (!value) return null
+  const [y, m, d] = value.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function fmtTime(value) {
+  if (!value) return null
+  const [h, m] = value.split(':').map(Number)
+  return new Date(2000, 0, 1, h, m).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+}
+
+function InfoCard({ icon, label, children }) {
+  return (
+    <div className="flex items-center gap-3 bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+      <span className="material-symbols-outlined text-primary">{icon}</span>
+      <div className="min-w-0">
+        <p className="font-label-sm text-label-sm text-on-surface-variant">{label}</p>
+        <div className="font-label-lg text-label-lg text-on-surface">{children}</div>
+      </div>
+    </div>
+  )
+}
+
 export default function EventDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -51,6 +82,16 @@ export default function EventDetails() {
     }
   }
 
+  const isVirtual = event?.modality === 'virtual'
+  // Virtual events store their meeting link in `address` (see CreateEvent).
+  const meetingLink = isVirtual && /^https?:\/\//i.test(event?.address ?? '') ? event.address : null
+  const dateLabel =
+    event && [fmtDate(event.start_date), event.end_date && event.end_date !== event.start_date ? fmtDate(event.end_date) : null]
+      .filter(Boolean)
+      .join(' – ')
+  const timeLabel =
+    event && [fmtTime(event.start_time), fmtTime(event.end_time)].filter(Boolean).join(' – ')
+
   return (
     <div className="w-full max-w-3xl mx-auto px-6 lg:px-12 py-8">
       <button
@@ -90,45 +131,66 @@ export default function EventDetails() {
       {event && (
         <div className="mt-6 space-y-6">
           <div>
-            <h1 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">{event.title}</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`px-2.5 py-0.5 rounded-full font-label-sm text-label-sm font-semibold ${
+                  event.fee_type === 'paid'
+                    ? 'bg-tertiary-container text-on-tertiary-container'
+                    : 'bg-secondary-container text-on-secondary-container'
+                }`}
+              >
+                {event.fee_type === 'paid' ? 'Paid event' : 'Free'}
+              </span>
+              {event.status !== 'submitted' && (
+                <span className="px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm capitalize">
+                  {event.status}
+                </span>
+              )}
+            </div>
+            <h1 className="mt-3 font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">{event.title}</h1>
             <p className="mt-3 font-body-md text-body-md text-on-surface-variant leading-relaxed">{event.description}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="flex items-center gap-3 bg-surface-container-lowest rounded-xl p-4 shadow-sm">
-              <span className="material-symbols-outlined text-primary">calendar_today</span>
-              <div>
-                <p className="font-label-sm text-label-sm text-on-surface-variant">Date & time</p>
-                <p className="font-label-lg text-label-lg text-on-surface">
-                  {event.start_date}
-                  {event.start_time ? ` · ${event.start_time}` : ''}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 bg-surface-container-lowest rounded-xl p-4 shadow-sm">
-              <span className="material-symbols-outlined text-primary">location_on</span>
-              <div>
-                <p className="font-label-sm text-label-sm text-on-surface-variant">Venue</p>
-                <p className="font-label-lg text-label-lg text-on-surface">{event.address ?? 'TBA'}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 bg-surface-container-lowest rounded-xl p-4 shadow-sm">
-              <span className="material-symbols-outlined text-primary">groups</span>
-              <div>
-                <p className="font-label-sm text-label-sm text-on-surface-variant">Slots</p>
-                <p className="font-label-lg text-label-lg text-on-surface">
-                  {event.capacity ? `${Math.max(0, event.capacity - (event.taken ?? 0))} of ${event.capacity} left` : 'Open'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 bg-surface-container-lowest rounded-xl p-4 shadow-sm">
-              <span className="material-symbols-outlined text-primary">devices</span>
-              <div>
-                <p className="font-label-sm text-label-sm text-on-surface-variant">Modality</p>
-                <p className="font-label-lg text-label-lg text-on-surface capitalize">{event.modality ?? 'In-person'}</p>
-              </div>
-            </div>
+            <InfoCard icon="calendar_today" label={event.end_date && event.end_date !== event.start_date ? 'Dates' : 'Date'}>
+              {dateLabel || 'TBA'}
+            </InfoCard>
+            <InfoCard icon="schedule" label="Time">
+              {timeLabel || 'TBA'}
+            </InfoCard>
+            <InfoCard icon={isVirtual ? 'videocam' : 'location_on'} label={isVirtual ? 'Meeting link' : 'Venue'}>
+              <span className="block truncate" title={event.address ?? ''}>
+                {event.address ?? 'TBA'}
+              </span>
+            </InfoCard>
+            <InfoCard icon="groups" label="Slots">
+              {event.capacity ? `${Math.max(0, event.capacity - (event.taken ?? 0))} of ${event.capacity} left` : 'Open'}
+            </InfoCard>
+            <InfoCard icon="devices" label="Modality">
+              <span className="capitalize">{event.modality ?? 'in-person'}</span>
+            </InfoCard>
+            <InfoCard icon={event.fee_type === 'paid' ? 'payments' : 'volunteer_activism'} label="Fee">
+              {event.fee_type === 'paid' ? 'Paid — settle with the organizer' : 'Free to join'}
+            </InfoCard>
+            {event.reward_type && (
+              <InfoCard icon="redeem" label="Reward">
+                {event.reward_type}
+              </InfoCard>
+            )}
           </div>
+
+          {meetingLink && (
+            <a
+              className="w-full py-3.5 bg-secondary-container text-on-secondary-container rounded-lg font-label-lg text-label-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+              href={meetingLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className="material-symbols-outlined text-[18px]">videocam</span>
+              Join virtual meeting
+              <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+            </a>
+          )}
 
           {!registered && (
             <button
