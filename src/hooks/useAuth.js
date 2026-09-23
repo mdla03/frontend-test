@@ -1,12 +1,13 @@
 import { useCallback, useState } from 'react'
-import { clearToken, getCurrentUser, setToken } from '../lib/auth'
+import { clearToken, getCurrentUser, setToken, setUser as persistUser } from '../lib/auth'
 
 export function useAuth() {
   const [user, setUser] = useState(getCurrentUser)
 
-  const login = useCallback((token) => {
+  const login = useCallback((token, userData) => {
     setToken(token)
-    setUser(getCurrentUser())
+    persistUser(userData)
+    setUser(userData)
   }, [])
 
   const logout = useCallback(() => {

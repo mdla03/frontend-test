@@ -111,9 +111,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 flex flex-col gap-6">
-          <div className="bg-surface-container-lowest rounded-xl shadow-sm p-6">
+      <div className="flex flex-col gap-6">
+        <div className="bg-surface-container-lowest rounded-xl shadow-sm p-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <div>
                 <h2 className="font-headline-sm text-headline-sm text-on-surface">Your Events</h2>
@@ -219,32 +218,6 @@ export default function Dashboard() {
               })}
             </div>
           </div>
-        </div>
-
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          <div className="bg-gradient-to-br from-surface-container to-surface-container-low p-6 rounded-xl relative overflow-hidden flex flex-col justify-between">
-            <div>
-              <div className="w-8 h-8 rounded-lg bg-primary-container text-on-primary flex items-center justify-center mb-2">
-                <span className="material-symbols-outlined text-[18px]">thumb_up</span>
-              </div>
-              <h4 className="font-headline-sm text-headline-sm text-on-surface">Volunteer Attendance Playbook</h4>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                Events scheduled Friday afternoons tend to see higher turnout — plan capacity accordingly.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-surface-container-low p-6 rounded-xl flex flex-col gap-2">
-            <div className="flex items-center gap-1.5 text-primary">
-              <span className="material-symbols-outlined text-[18px]">verified_user</span>
-              <span className="font-label-md text-label-md font-bold uppercase tracking-wide">HR Governance &amp; SLAs</span>
-            </div>
-            <p className="font-body-sm text-body-sm text-on-surface">
-              Event submissions require review by Manulife People &amp; Culture. Turnaround target is{' '}
-              <strong>24–48 hours</strong>.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   )

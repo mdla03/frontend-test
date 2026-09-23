@@ -15,75 +15,6 @@ const CATEGORIES = [
   { key: 'Career Growth', label: 'Career Growth', icon: 'trending_up' },
 ]
 
-// Shown until the backend has seeded events with coordinates.
-const SAMPLE_PINS = [
-  {
-    id: 'sample-map-1',
-    lat: 14.5514,
-    lng: 121.0509,
-    icon: 'diversity_3',
-    category: 'Icebreakers & Social',
-    title: 'Speed Friending Friday & Board Game Night',
-    host: 'Employee Engagement Council & People Team',
-    venue: '12F Town Hall & Sky Terrace, Manulife BGC Tower',
-    description: 'Break the routine! Meet 10+ colleagues over quick prompt cards and board games. Snacks provided.',
-    schedule: 'This Friday, 6:00 PM',
-    slotsLeft: '4 slots left',
-  },
-  {
-    id: 'sample-map-2',
-    lat: 14.549,
-    lng: 121.047,
-    icon: 'local_cafe',
-    category: 'Social',
-    title: 'Coffee Roulette',
-    host: 'Culture Committee',
-    venue: 'The Loft, 7F',
-    description: 'Randomly paired coffee chats across departments. Zero agenda, just connection.',
-    schedule: 'Ongoing, every 2 weeks',
-    slotsLeft: 'Open cohort',
-  },
-  {
-    id: 'sample-map-3',
-    lat: 14.554,
-    lng: 121.0525,
-    icon: 'lightbulb',
-    category: 'Life Skills',
-    title: 'Excel AI Lab',
-    host: 'IT Enablement',
-    venue: 'Learning Lab B, 8F',
-    description: 'Hands-on session on XLOOKUP, INDEX MATCH, and AI-assisted spreadsheet workflows.',
-    schedule: 'Nov 8, 3:00 PM',
-    slotsLeft: '15 slots left',
-  },
-  {
-    id: 'sample-map-4',
-    lat: 14.5648,
-    lng: 121.0244,
-    icon: 'record_voice_over',
-    category: 'Career Growth',
-    title: 'Toastmasters Pitch Bootcamp',
-    host: 'Manulife Toastmasters',
-    venue: 'Makati Hub, Salcedo Village',
-    description: 'Master micro-storytelling and voice modulation with a supportive closed circle.',
-    schedule: 'Nov 4, 9:00 AM',
-    slotsLeft: '8 slots left',
-  },
-  {
-    id: 'sample-map-5',
-    lat: 14.587,
-    lng: 121.0614,
-    icon: 'fitness_center',
-    category: 'Wellness',
-    title: 'Sunset Rooftop Yoga Flow',
-    host: 'Wellness Guild',
-    venue: 'Ortigas 16F Rooftop',
-    description: 'Unwind with a guided sunset yoga flow open to all levels.',
-    schedule: 'Nov 10, 5:30 PM',
-    slotsLeft: '10 slots left',
-  },
-]
-
 function pinIcon(icon, active) {
   return L.divIcon({
     className: '',
@@ -113,8 +44,7 @@ function FlyTo({ position }) {
 }
 
 export default function MapDiscovery() {
-  const [pins, setPins] = useState(SAMPLE_PINS)
-  const [usingSample, setUsingSample] = useState(true)
+  const [pins, setPins] = useState([])
   const [category, setCategory] = useState('all')
   const [selected, setSelected] = useState(null)
   const [userPosition, setUserPosition] = useState(null)
@@ -125,7 +55,6 @@ export default function MapDiscovery() {
       .get('/events/nearby', { params: { lat: BGC_CENTER[0], lng: BGC_CENTER[1], radius: 20000 } })
       .then((res) => {
         const data = res.data.data ?? []
-        if (data.length === 0) return
         setPins(
           data
             .filter((e) => e.latitude && e.longitude)
@@ -138,10 +67,9 @@ export default function MapDiscovery() {
               title: e.title,
               venue: e.address,
               description: e.description,
-              schedule: e.start_date,
+              schedule: e.start_time ? `${e.start_date} · ${e.start_time}` : e.start_date,
             })),
         )
-        setUsingSample(false)
       })
       .catch(() => {})
   }, [])
@@ -191,19 +119,6 @@ export default function MapDiscovery() {
                 type="text"
               />
             </div>
-            <div className="flex items-center bg-surface-container-low p-1 rounded-xl shrink-0">
-              <button
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-all"
-                onClick={() => navigate('/events')}
-              >
-                <span className="material-symbols-outlined text-[18px]">format_list_bulleted</span>
-                <span className="hidden sm:inline">List View</span>
-              </button>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md shadow-sm">
-                <span className="material-symbols-outlined text-[18px]">map</span>
-                <span className="hidden sm:inline">Map View</span>
-              </button>
-            </div>
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto py-1">
@@ -241,9 +156,9 @@ export default function MapDiscovery() {
         </button>
       </div>
 
-      {usingSample && (
+      {pins.length === 0 && (
         <div className="absolute top-32 md:top-24 left-4 z-[999] bg-surface-container-lowest/90 backdrop-blur px-3 py-1.5 rounded-full font-label-sm text-label-sm text-on-surface-variant shadow">
-          Showing sample pins — connect a seeded backend to see live events.
+          No approved events with a location yet.
         </div>
       )}
 

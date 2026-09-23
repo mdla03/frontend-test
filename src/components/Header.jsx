@@ -1,10 +1,9 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 
 const navLinks = [
   { to: '/events', label: 'Events' },
   { to: '/map', label: 'Map' },
-  { to: '/rewards', label: 'Impact' },
 ]
 
 function initials(name) {
@@ -17,7 +16,13 @@ function initials(name) {
 }
 
 export default function Header() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
 
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest/95 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
@@ -33,7 +38,7 @@ export default function Header() {
           <div className="hidden sm:flex flex-col">
             <span className="font-headline-sm text-headline-sm text-on-surface leading-tight">Bayanihan</span>
             <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
-              Manulife Philippines CSR
+              Manulife Philippines
             </span>
           </div>
         </div>
@@ -44,10 +49,9 @@ export default function Header() {
               key={link.to}
               to={link.to}
               className={({ isActive }) =>
-                `px-4 py-2 transition-colors font-label-md text-label-md rounded-xl ${
-                  isActive
-                    ? 'bg-secondary-container text-on-secondary-container font-label-lg'
-                    : 'text-on-surface-variant hover:text-on-surface'
+                `px-4 py-2 transition-colors font-label-md text-label-md rounded-xl ${isActive
+                  ? 'bg-secondary-container text-on-secondary-container font-label-lg'
+                  : 'text-on-surface-variant hover:text-on-surface'
                 }`
               }
             >
@@ -57,22 +61,31 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <button
-            aria-label="Notifications"
-            className="relative p-2 rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors"
-            type="button"
-          >
-            <span className="material-symbols-outlined">notifications</span>
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error" />
-          </button>
-          <div className="flex items-center gap-3 pl-2">
-            <div className="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center text-xs font-bold">
-              {initials(user?.name)}
+          <div className="dropdown dropdown-end">
+            <div tabIndex={0} role="button" className="flex items-center gap-3 pl-2 cursor-pointer">
+              <div className="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center text-xs font-bold">
+                {initials(user?.name)}
+              </div>
+              <div className="hidden md:flex flex-col text-left">
+                <span className="font-label-md text-label-md text-on-surface leading-tight">{user?.name}</span>
+                <span className="font-label-sm text-label-sm text-on-surface-variant capitalize">{user?.role}</span>
+              </div>
+              <span className="material-symbols-outlined text-[18px] text-on-surface-variant">expand_more</span>
             </div>
-            <div className="hidden md:flex flex-col text-left">
-              <span className="font-label-md text-label-md text-on-surface leading-tight">{user?.name}</span>
-              <span className="font-label-sm text-label-sm text-on-surface-variant capitalize">{user?.role}</span>
-            </div>
+            <ul tabIndex={0} className="dropdown-content menu z-50 mt-2 w-48 rounded-xl bg-surface-container-lowest shadow-lg p-2 gap-1">
+              <li>
+                <NavLink to="/rewards" className="font-label-md text-label-md text-on-surface rounded-lg">
+                  <span className="material-symbols-outlined text-[18px]">person</span>
+                  Profile
+                </NavLink>
+              </li>
+              <li>
+                <button type="button" onClick={handleLogout} className="font-label-md text-label-md text-error rounded-lg">
+                  <span className="material-symbols-outlined text-[18px]">logout</span>
+                  Log out
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
       </div>

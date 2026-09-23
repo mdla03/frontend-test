@@ -6,6 +6,7 @@ import AdminOverview from './pages/admin/Overview'
 import AdminRewards from './pages/admin/Rewards'
 import AdminUsers from './pages/admin/Users'
 import Login from './pages/auth/Login'
+import Signup from './pages/auth/Signup'
 import Attendees from './pages/organizer/Attendees'
 import CreateEvent from './pages/organizer/CreateEvent'
 import OrganizerDashboard from './pages/organizer/Dashboard'
@@ -44,6 +45,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
         <Route element={<ProtectedRoute allow={['user']} />}>
           <Route element={<UserLayout />}>

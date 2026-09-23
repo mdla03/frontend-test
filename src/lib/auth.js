@@ -6,28 +6,21 @@ export function getToken() {
   return localStorage.getItem('token')
 }
 
-export function clearToken() {
-  localStorage.removeItem('token')
+export function setUser(user) {
+  localStorage.setItem('user', JSON.stringify(user))
 }
 
-export function decodeToken(token) {
-  try {
-    const payload = token.split('.')[1]
-    return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
-  } catch {
-    return null
-  }
+export function clearToken() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
 }
 
 export function getCurrentUser() {
-  const token = getToken()
-  if (!token) return null
-  return decodeToken(token)
-}
-
-// Demo-only: stands in for the real backend-issued JWT until auth is wired up.
-export function createDemoToken(user) {
-  const header = btoa(JSON.stringify({ alg: 'none', typ: 'JWT' }))
-  const payload = btoa(JSON.stringify(user))
-  return `${header}.${payload}.demo`
+  const raw = localStorage.getItem('user')
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
 }

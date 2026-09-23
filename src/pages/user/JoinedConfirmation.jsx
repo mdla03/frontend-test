@@ -101,60 +101,13 @@ export default function JoinedConfirmation() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col">
-          <span className="font-label-sm text-label-sm text-primary uppercase font-bold tracking-widest">Preparation Routine</span>
-          <h3 className="font-headline-md text-headline-md text-on-surface">What to expect on the day</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex flex-col gap-3 p-6 rounded-2xl bg-surface-container-lowest shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center font-label-md text-label-md font-bold text-primary">01</span>
-              <span className="material-symbols-outlined text-tertiary-container text-[24px]">sentiment_satisfied</span>
-            </div>
-            <h4 className="font-headline-sm text-headline-sm text-on-surface">Casual & Welcoming</h4>
-            <p className="font-body-md text-body-md text-on-surface-variant">
-              No prep needed! Bring an open mind — whether you love the topic or just want to connect, there is a spot for
-              everyone.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 p-6 rounded-2xl bg-surface-container-lowest shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center font-label-md text-label-md font-bold text-primary">02</span>
-              <span className="material-symbols-outlined text-tertiary-container text-[24px]">bakery_dining</span>
-            </div>
-            <h4 className="font-headline-sm text-headline-sm text-on-surface">Arrive a Bit Early</h4>
-            <p className="font-body-md text-body-md text-on-surface-variant">
-              Arrive a few minutes ahead for refreshments and a warm welcome before the session kicks off.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 p-6 rounded-2xl bg-surface-container-lowest shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center font-label-md text-label-md font-bold text-primary">03</span>
-              <span className="material-symbols-outlined text-tertiary-container text-[24px]">how_to_reg</span>
-            </div>
-            <h4 className="font-headline-sm text-headline-sm text-on-surface">Attendance Marked for You</h4>
-            <p className="font-body-md text-body-md text-on-surface-variant">
-              The organizer will mark your attendance at the event — your learning hours log automatically once they do.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-4 pt-6 pb-12 border-t border-surface-container-high/70">
+      <div className="flex flex-wrap items-center justify-start gap-4 pt-6 pb-12 border-t border-surface-container-high/70">
         <Link
           to="/events"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-surface-container-lowest text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors shadow-xs"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-label-md text-label-md hover:bg-secondary transition-colors shadow-sm"
         >
           <span className="material-symbols-outlined text-[20px]">explore</span>
           <span>Browse More Sessions</span>
-        </Link>
-        <Link
-          to="/rewards"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-label-md text-label-md hover:bg-secondary transition-colors shadow-sm"
-        >
-          <span className="material-symbols-outlined text-[20px]">volunteer_activism</span>
-          <span>View My Impact</span>
         </Link>
       </div>
     </div>
