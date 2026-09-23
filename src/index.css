@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+/* DaisyUI kept for generic component primitives (btn, input, card…) on
+   pages not yet ported from Stitch. Its palette mirrors the Stitch tokens
+   below so anything still using daisyui classes stays visually consistent. */
+@plugin "daisyui" {
+  themes: bayanihan --default;
+}
+
+@plugin "daisyui/theme" {
+  name: "bayanihan";
+  color-scheme: light;
+  --color-primary: #006d37;
+  --color-primary-content: #ffffff;
+  --color-secondary: #006d3d;
+  --color-secondary-content: #ffffff;
+  --color-accent: #00a758;
+  --color-accent-content: #ffffff;
+  --color-neutral: #171a2d;
+  --color-neutral-content: #ffffff;
+  --color-base-100: #ffffff;
+  --color-base-200: #fbf8ff;
+  --color-base-300: #ececff;
+  --color-base-content: #171a2d;
+  --color-info: #0ea5e9;
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-error: #ba1a1a;
+  --radius-box: 0.75rem;
+  --radius-field: 0.5rem;
+}
+
+/*
+ * Stitch design-system tokens, copied verbatim from the "Bayanihan" Stitch
+ * project's generated tailwind.config (same across every screen). Keeping
+ * these as real Tailwind theme colors/fonts/sizes/spacing lets Stitch's
+ * exported markup be ported into JSX with the same class names, instead of
+ * re-styling each screen by hand.
+ */
+@theme {
+  --color-primary: #006d37;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #00a758;
+  --color-on-primary-container: #003216;
+  --color-surface-tint: #006d37;
+
+  --color-secondary: #006d3d;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #8bf5b1;
+  --color-on-secondary-container: #007240;
+
+  --color-tertiary: #54615c;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #86948e;
+  --color-on-tertiary-container: #202d28;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --color-background: #fbf8ff;
+  --color-on-background: #171a2d;
+  --color-surface: #fbf8ff;
+  --color-surface-dim: #d7d8f2;
+  --color-surface-bright: #fbf8ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f2ff;
+  --color-surface-container: #ececff;
+  --color-surface-container-high: #e5e6ff;
+  --color-surface-container-highest: #dfe1fa;
+  --color-surface-variant: #dfe1fa;
+  --color-on-surface: #171a2d;
+  --color-on-surface-variant: #3d4a3f;
+
+  --color-outline: #6d7b6e;
+  --color-outline-variant: #bccabb;
+
+  --color-inverse-surface: #2c2f42;
+  --color-inverse-on-surface: #f0efff;
+  --color-inverse-primary: #5adf89;
+
+  --color-primary-fixed: #78fca2;
+  --color-primary-fixed-dim: #5adf89;
+  --color-on-primary-fixed: #00210d;
+  --color-on-primary-fixed-variant: #005228;
+  --color-secondary-fixed: #8ef8b4;
+  --color-secondary-fixed-dim: #71db99;
+  --color-on-secondary-fixed: #00210f;
+  --color-on-secondary-fixed-variant: #00522d;
+  --color-tertiary-fixed: #d7e6df;
+  --color-tertiary-fixed-dim: #bbcac3;
+  --color-on-tertiary-fixed: #111e1a;
+  --color-on-tertiary-fixed-variant: #3c4a45;
+
+  --font-display-hero: "Source Serif 4", serif;
+  --font-display-hero-mobile: "Source Serif 4", serif;
+  --font-headline-lg: "Source Serif 4", serif;
+  --font-headline-lg-mobile: "Source Serif 4", serif;
+  --font-headline-md: "Source Serif 4", serif;
+  --font-headline-sm: "Source Serif 4", serif;
+  --font-body-lg: "Source Sans 3", sans-serif;
+  --font-body-md: "Source Sans 3", sans-serif;
+  --font-body-sm: "Source Sans 3", sans-serif;
+  --font-label-lg: "Source Sans 3", sans-serif;
+  --font-label-md: "Source Sans 3", sans-serif;
+  --font-label-sm: "Source Sans 3", sans-serif;
+
+  --font-sans: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
+
+  --spacing-margin: 1rem;
+  --spacing-margin-md: 1.5rem;
+  --spacing-margin-lg: 2.5rem;
+  --spacing-gutter: 1rem;
+  --spacing-gutter-lg: 1.5rem;
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2rem;
+}
+
+/* Paired size/line-height/weight utilities — Stitch's fontSize scale ships
+   weight+leading bundled with the size, which Tailwind's --text-* theme
+   namespace alone can't express, so these are hand-defined to match. */
+@utility text-display-hero {
+  font-size: 40px;
+  line-height: 48px;
+  font-weight: 700;
+}
+@utility text-display-hero-mobile {
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 700;
+}
+@utility text-headline-lg {
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 700;
+}
+@utility text-headline-lg-mobile {
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 700;
+}
+@utility text-headline-md {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+}
+@utility text-headline-sm {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+}
+@utility text-body-lg {
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 400;
+}
+@utility text-body-md {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+@utility text-body-sm {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+}
+@utility text-label-lg {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+@utility text-label-md {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+}
+@utility text-label-sm {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+}
+
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+}
