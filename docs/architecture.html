@@ -1,0 +1,601 @@
+<title>Spaces — Application Architecture</title>
+
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #171a2d;
+    --ink-soft: #3d4a3f;
+    --ink-faint: #6d7b6e;
+    --ground: #fbf8ff;
+    --panel: #ffffff;
+    --hairline: #bccabb;
+    --hairline-soft: #dfe1fa;
+    --primary: #006d37;
+    --accent: #00a758;
+    --alert: #ba1a1a;
+
+    --plate-bg: #ffffff;
+    --plate-edge: #dfe1fa;
+
+    --display: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --measure: 68ch;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --ink: #eceaf6;
+      --ink-soft: #b3bcb5;
+      --ink-faint: #8b958c;
+      --ground: #12141f;
+      --panel: #1a1d2b;
+      --hairline: #333a44;
+      --hairline-soft: #2a2f3d;
+      --primary: #5adf89;
+      --accent: #78fca2;
+      --alert: #ff8d80;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ink: #eceaf6;
+    --ink-soft: #b3bcb5;
+    --ink-faint: #8b958c;
+    --ground: #12141f;
+    --panel: #1a1d2b;
+    --hairline: #333a44;
+    --hairline-soft: #2a2f3d;
+    --primary: #5adf89;
+    --accent: #78fca2;
+    --alert: #ff8d80;
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --ink: #171a2d;
+    --ink-soft: #3d4a3f;
+    --ink-faint: #6d7b6e;
+    --ground: #fbf8ff;
+    --panel: #ffffff;
+    --hairline: #bccabb;
+    --hairline-soft: #dfe1fa;
+    --primary: #006d37;
+    --accent: #00a758;
+    --alert: #ba1a1a;
+  }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  .col { max-width: var(--measure); }
+
+  /* ---- masthead ---- */
+
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(2.2rem, 5vw, 3.1rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-family: var(--display);
+    font-size: 1.15rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: var(--measure);
+  }
+
+  .stack-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  /* ---- sections ---- */
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(1.45rem, 3vw, 1.85rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h2 .fig {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary);
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 400;
+  }
+
+  h3 {
+    font-family: var(--body);
+    font-weight: 650;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    margin: 0;
+  }
+
+  p { margin: 0; max-width: var(--measure); }
+
+  strong { font-weight: 650; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--hairline-soft);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+
+  /* ---- plates: diagrams sit on fixed-light paper in both themes ---- */
+
+  .plate {
+    background: var(--plate-bg);
+    border: 1px solid var(--plate-edge);
+    border-radius: 10px;
+    padding: 1.75rem 1.25rem;
+    overflow-x: auto;
+  }
+
+  .plate pre.mermaid {
+    margin: 0;
+    background: none;
+    display: flex;
+    justify-content: center;
+    min-width: max-content;
+  }
+
+  .caption {
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    max-width: var(--measure);
+  }
+
+  .caption b { color: var(--ink-soft); font-weight: 600; }
+
+  /* ---- notes list ---- */
+
+  .notes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    max-width: var(--measure);
+  }
+
+  .notes li {
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--hairline);
+    line-height: 1.6;
+  }
+
+  .notes li.flag { border-left-color: var(--alert); }
+
+  /* ---- layer table ---- */
+
+  .layers {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0 1.5rem;
+    max-width: var(--measure);
+    font-size: 0.95rem;
+  }
+
+  .layers dt {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    color: var(--primary);
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--hairline-soft);
+    white-space: nowrap;
+  }
+
+  .layers dd {
+    margin: 0;
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--hairline-soft);
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 34rem) {
+    .layers { grid-template-columns: 1fr; gap: 0; }
+    .layers dd { border-top: none; padding-top: 0; }
+  }
+
+  footer {
+    border-top: 1px solid var(--hairline);
+    padding-top: 1.5rem;
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    max-width: var(--measure);
+  }
+
+  a { color: var(--primary); }
+  a:focus-visible, .plate:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <span class="eyebrow">Spaces · Architecture</span>
+    <h1>How a request travels from the browser to the database</h1>
+    <p class="standfirst">
+      Spaces is the internal community-events platform for Manulife Philippines — employees
+      discover and join events, organizers run them, admins approve both. Three tiers,
+      one enforcement point, four tables.
+    </p>
+    <div class="stack-strip">
+      <span class="chip">React 19</span>
+      <span class="chip">Vite 8</span>
+      <span class="chip">React Router 7</span>
+      <span class="chip">Tailwind 4</span>
+      <span class="chip">Leaflet</span>
+      <span class="chip">Express 4</span>
+      <span class="chip">Node ESM</span>
+      <span class="chip">Supabase Postgres</span>
+      <span class="chip">PostGIS</span>
+      <span class="chip">JWT · bcrypt</span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="fig">Figure 1</span>System shape</h2>
+    <p>
+      Three tiers, strictly separated. The browser holds a token and nothing else;
+      the database credential never leaves the server.
+    </p>
+
+    <div class="plate">
+<pre class="mermaid">
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"ui-monospace, SFMono-Regular, Menlo, monospace","fontSize":"13px","primaryColor":"#eef7f1","primaryTextColor":"#171a2d","primaryBorderColor":"#006d37","lineColor":"#6d7b6e","clusterBkg":"#fbf8ff","clusterBorder":"#bccabb","tertiaryColor":"#ffffff"}} }%%
+flowchart TB
+  subgraph B["Browser — React SPA"]
+    direction TB
+    UI["Pages<br/>user · organizer · admin"]
+    GUARD["ProtectedRoute<br/>role gate + /me re-sync"]
+    AX["axios instance<br/>attaches Bearer token"]
+    LS[("localStorage<br/>token · user")]
+    UI --> GUARD --> AX
+    AX -.reads.-> LS
+  end
+
+  subgraph A["Express API — Node"]
+    direction TB
+    R["Routers<br/>auth · events · me · rewards · admin"]
+    AM["authMiddleware<br/>verify JWT, reload user row"]
+    RR["requireRole(...)<br/>403 outside the set"]
+    OWN["Ownership check<br/>inside controller"]
+    C["Controllers"]
+    R --> AM --> RR --> C
+    C -.-> OWN
+  end
+
+  subgraph D["Supabase — managed Postgres"]
+    direction TB
+    T[("users · events<br/>event_registrations · rewards")]
+    RPC["SQL functions<br/>nearby_events<br/>leaderboard_rewards<br/>monthly_registrations"]
+    PG["PostGIS<br/>geography(point, 4326)"]
+    RPC --> PG
+  end
+
+  B -- "HTTPS · JSON<br/>Authorization: Bearer" --> A
+  A -- "supabase-js · service_role key" --> D
+
+  classDef edge fill:#ffffff,stroke:#bccabb,color:#3d4a3f;
+  class LS,T edge;
+</pre>
+    </div>
+
+    <p class="caption">
+      <b>Why the API tier exists.</b> Supabase can be called straight from the browser. It
+      deliberately isn't: that would push every rule into Row Level Security policies and put
+      a database credential in the client. One enforcement point in Express keeps the rules in
+      one place — and keeps the frontend portable to any Postgres later.
+    </p>
+  </section>
+
+  <section>
+    <h2><span class="fig">Figure 2</span>Request lifecycle</h2>
+    <p>
+      Every protected call takes the same four steps. The order matters: authentication
+      before role, role before ownership.
+    </p>
+
+    <div class="plate">
+<pre class="mermaid">
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"ui-monospace, SFMono-Regular, Menlo, monospace","fontSize":"13px","primaryColor":"#eef7f1","primaryTextColor":"#171a2d","primaryBorderColor":"#006d37","lineColor":"#6d7b6e","actorBkg":"#eef7f1","actorBorder":"#006d37","actorTextColor":"#171a2d","signalColor":"#3d4a3f","signalTextColor":"#171a2d","labelBoxBkg":"#fbf8ff","labelBoxBorderColor":"#bccabb","noteBkgColor":"#fff6e5","noteBorderColor":"#c9a227","noteTextColor":"#171a2d"}} }%%
+sequenceDiagram
+  autonumber
+  participant P as Page
+  participant X as axios
+  participant M as authMiddleware
+  participant G as requireRole
+  participant C as Controller
+  participant DB as Postgres
+
+  P->>X: api.patch('/events/:id', body)
+  X->>M: + Authorization: Bearer token
+  M->>M: jwt.verify(token)
+  M->>DB: select user where id = token.sub
+  DB-->>M: fresh row (role, organizer_status)
+  Note over M,DB: Role is re-read per request,<br/>never trusted from the token
+  M->>G: req.user
+  G-->>X: 403 if role not allowed
+  G->>C: next()
+  C->>DB: load row, compare organizer_id
+  C-->>X: 403 if caller is not the owner
+  C->>DB: apply update
+  DB-->>C: updated row
+  C-->>P: { message, data }
+</pre>
+    </div>
+
+    <p class="caption">
+      <b>Three depths, not one.</b> Role alone would let any organizer edit any other
+      organizer's event. The ownership comparison lives in the controller, where the row is
+      already loaded — and it still lets an admin through.
+    </p>
+  </section>
+
+  <section>
+    <h2><span class="fig">Figure 3</span>Event lifecycle</h2>
+    <p>
+      The product's central rule: an event is invisible and unjoinable until an admin
+      approves it. Registration re-checks approval at join time, so an event rejected between
+      page load and click cannot be joined.
+    </p>
+
+    <div class="plate">
+<pre class="mermaid">
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"ui-monospace, SFMono-Regular, Menlo, monospace","fontSize":"13px","primaryColor":"#eef7f1","primaryTextColor":"#171a2d","primaryBorderColor":"#006d37","lineColor":"#6d7b6e","clusterBkg":"#fbf8ff","clusterBorder":"#bccabb"}} }%%
+stateDiagram-v2
+  direction LR
+  [*] --> Pending: organizer creates<br/>status submitted
+  Pending --> Approved: admin PATCH /status<br/>records approved_by
+  Pending --> Rejected: admin PATCH /status
+  Pending --> ChangesRequested: admin asks for edits
+  ChangesRequested --> Pending: organizer edits
+  Approved --> Visible
+  Rejected --> [*]
+
+  state Visible {
+    direction LR
+    [*] --> Listed: appears in /events<br/>for role user
+    Listed --> Registered: POST /:id/register
+    Registered --> Cancelled: DELETE /:id/register
+    Cancelled --> Registered: upsert revives the row
+  }
+</pre>
+    </div>
+
+    <p class="caption">
+      <b>Cancelling is a state change, not a delete.</b> The row survives so history does.
+      Combined with the <code>unique (event_id, user_id)</code> constraint, re-joining has to
+      be an upsert on that pair — a plain insert would violate the constraint.
+    </p>
+  </section>
+
+  <section>
+    <h2><span class="fig">Figure 4</span>Roles and route access</h2>
+    <p>
+      The same role that decides which portal the client renders decides what the API will
+      answer. Guarding only the frontend would be decoration — the server re-derives the role
+      on every call.
+    </p>
+
+    <div class="plate">
+<pre class="mermaid">
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"ui-monospace, SFMono-Regular, Menlo, monospace","fontSize":"13px","primaryColor":"#eef7f1","primaryTextColor":"#171a2d","primaryBorderColor":"#006d37","lineColor":"#6d7b6e","clusterBkg":"#fbf8ff","clusterBorder":"#bccabb"}} }%%
+flowchart LR
+  U(["user<br/>employee"])
+  O(["organizer"])
+  AD(["admin"])
+
+  subgraph SHARED["UserLayout"]
+    E1["/events · /events/:id"]
+    E2["/map — PostGIS radius"]
+    E3["/profile — rewards"]
+  end
+
+  subgraph ORG["DashboardLayout · Organizer"]
+    O1["/organizer — own events"]
+    O2["/organizer/create"]
+    O3["/organizer/attendees"]
+  end
+
+  subgraph ADM["DashboardLayout · Admin"]
+    A1["/admin — analytics"]
+    A2["/admin/approvals"]
+    A3["/admin/users — roles"]
+    A4["/admin/rewards"]
+  end
+
+  U --> SHARED
+  O --> SHARED
+  O --> ORG
+  AD --> ADM
+
+  U -. "POST /me/apply-organizer<br/>status → pending" .-> AD
+  AD -. "PATCH /admin/users/:id<br/>grants the role" .-> O
+</pre>
+    </div>
+
+    <p class="caption">
+      <b>Promotion closes its own loop.</b> An employee applies, an admin grants the role, and
+      the next protected route entry re-syncs the cached user from <code>/me</code> — the
+      organizer portal appears without logging out and back in.
+    </p>
+  </section>
+
+  <section>
+    <h2><span class="fig">Figure 5</span>Data model</h2>
+    <p>
+      Four tables. Every status column is a <code>check</code> constraint rather than a
+      Postgres enum, so a migration can widen the allowed values without an
+      <code>ALTER TYPE</code>.
+    </p>
+
+    <div class="plate">
+<pre class="mermaid">
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"ui-monospace, SFMono-Regular, Menlo, monospace","fontSize":"13px","primaryColor":"#eef7f1","primaryTextColor":"#171a2d","primaryBorderColor":"#006d37","lineColor":"#6d7b6e"}} }%%
+erDiagram
+  users ||--o{ events : "organizes"
+  users ||--o{ events : "approves"
+  users ||--o{ event_registrations : "joins"
+  events ||--o{ event_registrations : "receives"
+  users ||--o{ rewards : "earns"
+  events |o--o{ rewards : "grants"
+
+  users {
+    uuid id PK
+    text email UK
+    text password "bcrypt, cost 10"
+    text role "user|organizer|admin"
+    text organizer_status "none|pending|approved|rejected"
+  }
+  events {
+    uuid id PK
+    text approval_status "pending|approved|rejected|changes_requested"
+    text status "submitted|cancelled|completed"
+    geography location "point 4326"
+    double latitude
+    double longitude
+    uuid organizer_id FK
+    uuid approved_by FK
+  }
+  event_registrations {
+    uuid event_id FK "cascade on delete"
+    uuid user_id FK "cascade on delete"
+    text status "registered|waitlisted|cancelled"
+    constraint unique_pair "unique (event_id, user_id)"
+  }
+  rewards {
+    uuid user_id FK "cascade on delete"
+    uuid event_id FK "set null on delete"
+    numeric amount
+    text status "pending|granted"
+  }
+</pre>
+    </div>
+
+    <p class="caption">
+      <b>Referential policy is decided per relation, not globally.</b> Deleting an event
+      cascades its registrations — a registration means nothing without its event. The same
+      delete only nulls the link on a reward, because a granted reward records something an
+      employee actually did and has to survive the event being removed.
+    </p>
+  </section>
+
+  <section>
+    <h2>Where each concern lives</h2>
+    <dl class="layers">
+      <dt>Authentication</dt>
+      <dd><code>authMiddleware</code>, mounted with <code>router.use()</code> at the top of every protected router — a route added later is guarded by default.</dd>
+
+      <dt>Role</dt>
+      <dd><code>requireRole('organizer')</code> — a small factory returning middleware.</dd>
+
+      <dt>Ownership</dt>
+      <dd>Inside the controller, where the row is already loaded.</dd>
+
+      <dt>Visibility</dt>
+      <dd>In the query itself. A <code>user</code> gets <code>approval_status = 'approved'</code> appended — unapproved events never leave the database.</dd>
+
+      <dt>Capacity</dt>
+      <dd>Counted by Postgres. Event queries embed <code>event_registrations(count)</code>, so remaining slots arrive with the event in one round trip — no N+1, no counter that can drift.</dd>
+
+      <dt>Geo search</dt>
+      <dd><code>ST_DWithin</code> in the <code>nearby_events</code> function, ordered by distance. Coordinates are stored twice on purpose: plain doubles for the client, a geography column for the query.</dd>
+
+      <dt>Client state</dt>
+      <dd><code>useAuth</code> over localStorage. No Redux, no Context provider — there is exactly one piece of global state, and it is the signed-in user.</dd>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Read alongside the diagrams</h2>
+    <ul class="notes">
+      <li><strong>The token carries <code>sub</code> and <code>role</code>, but role is re-read from the database every request.</strong> Costs one query; buys instant effect when an admin demotes someone, instead of waiting out a token expiry.</li>
+      <li><strong>Env vars fail fast.</strong> <code>required()</code> throws at import time, so a missing key stops the process at boot with a named error rather than surfacing as confusing 500s later.</li>
+      <li><strong>Cover images are size-capped.</strong> Covers arrive as base64 data URLs, so the JSON body limit is 4 MB and an <code>img_url</code> over 2 MB is rejected with a 413.</li>
+      <li class="flag"><strong>The API uses the Supabase <code>service_role</code> key, which bypasses Row Level Security entirely.</strong> Workable while Express is the only client. Before any direct browser-to-Supabase access, RLS policies become mandatory — and a key copied between machines should be rotated.</li>
+      <li class="flag"><strong>Capacity is displayed but not enforced server-side,</strong> and the <code>waitlisted</code> status is unused. Enforcing it needs a transaction or a trigger; a check in JavaScript races under concurrent joins.</li>
+    </ul>
+  </section>
+
+  <footer>
+    Diagrams sit on fixed-light plates in both themes, the way printed figures do — the page
+    chrome follows your system theme. Source of record: <code>backend/src/</code> and
+    <code>backend/sql/schema.sql</code>.
+  </footer>
+
+</div>
